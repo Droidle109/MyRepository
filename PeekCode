@@ -1,0 +1,122 @@
+	private void addButton3Listener(){
+		Button button3 = (Button) findViewById(R.id.button3);
+		button3.setOnClickListener(new OnClickListener() {
+			
+			
+
+			@Override
+			public void onClick(View v) {
+				
+				if(chunk_cnt<10){
+
+					points-=10;
+					ImageView iv = (ImageView) findViewById(R.id.iv_display2_testing);
+					
+					int selected_chunk = chunksList.get(chunk_cnt);
+					++chunk_cnt;
+					
+					Bitmap src = bitmap.copy(Bitmap.Config.ARGB_8888, true);
+					try{
+						src.setHasAlpha(true);
+					} catch(Exception e) {
+						e.printStackTrace();
+						//Log.d("seHasAlpha", "not supported by version build.");
+					}
+				    
+					int w = src.getWidth();
+					int h = src.getHeight();
+					int T = w * h;
+					
+					int max_chunk=T/10;
+					int a = w/2;
+					int b = h/5;
+					
+					//int leftovers= T-max_chunk*10; //for debugging
+
+					int bmsize = w*h;   
+			        int[] pix = new int [bmsize];
+			        
+			        int[] coords = new int[2];
+			        coords = getPixCoords(selected_chunk, a, b);
+					
+					
+					//Log.d("COORDINATES", "COORDINATES X = "+x+"  Y = "+y); //for debugging
+
+			        src.getPixels(pix, 0, w, coords[0], coords[1], a, b);
+			        
+			        int rows = w*b;
+			        for (int i=0; i<rows; i++){
+			            pix[i] = Color.TRANSPARENT;
+			        }
+			        
+			        //for debugging
+		/*					Log.d("Testing algorithm values", "w = "+w);
+					Log.d("Testing algorithm values", "h = "+h);
+					Log.d("Testing algorithm values", "T = "+T);
+					Log.d("Testing algorithm values", "max_chunk = "+max_chunk);
+					Log.d("Testing algorithm values", "a = "+a);
+					Log.d("Testing algorithm values", "b = "+b);
+					Log.d("Testing algorithm values", "leftovers = "+leftovers);
+			        Log.d("Src bitmap", "src bm src.getWidth() = "+w);
+			        Log.d("Src bitmap", "src bm src.getHeight() = "+h);
+			        Log.d("Src bitmap", "src bm rows = "+rows);*/
+			        
+					src.setPixels(pix, 0, w, coords[0], coords[1], a, b);
+					iv.setImageBitmap(src);
+					
+					bitmap = src;
+					src=null;
+					
+					nPoints-=1;
+					
+					
+					
+					if(chunk_cnt>9){
+						iv.setVisibility(View.GONE);
+						bitmap=null;
+						
+						fillTiles();
+						String correct = "no";
+						if(checkConn()){
+                			addPoints(correct);
+                		} else {
+                			Toast.makeText(ImageDisplay.this, "Unable to establish wifi/data connection.", Toast.LENGTH_LONG).show();
+                		}
+						answered=true;
+						
+					} else if(hntsCnt>0){
+						if(hintsList.contains(selected_chunk)) {
+							showHint(hntsCnt);
+							hntsCnt-=1;
+						}
+					}
+					
+					Button button1 = (Button) findViewById(R.id.ff_btn_srch);
+					button1.setText("Peeks: " +nPoints+"\nHints: "+hntsCnt);
+				
+					
+				} else {
+					Toast.makeText(ImageDisplay.this, "Original Image is complete !", Toast.LENGTH_LONG).show();
+				}
+
+			}
+			
+			
+			private int[] getPixCoords(int chunk, int a, int b) {
+				int x=0,y=0;
+				switch (chunk) {
+				case 1: x = 0; y = 0; break;
+				case 2:	x = a; y = 0; break;
+				case 3:	x = 0; y = b; break;
+				case 4:	x = a; y = b; break;
+				case 5:	x = 0; y = b * 2; break;
+				case 6:	x = a; y = b * 2; break;
+				case 7: x = 0; y = b * 3; break;
+				case 8:	x = a; y = b * 3; break;
+				case 9:	x = 0; y = b * 4; break;
+				case 10: x = a;	y = b * 4; break;
+				default: break;}
+				int[] coords = {x,y};
+				return coords;
+			}
+			
